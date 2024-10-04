@@ -1,0 +1,36 @@
+<configuration>
+
+    <property name="applicationName" value="${ServerName:-ping}"/>
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %highlight(%5level) [%boldCyan(${applicationName})] [%boldYellow(%15.15thread)] %boldGreen(%-40.40logger{39}) : %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="PING_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${applicationName}.log</file>
+        <!-- Nonsupport multiple-JVM writing to the same log file -->
+        <prudent>false</prudent>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!-- rollover daily -->
+            <fileNamePattern>${applicationName}-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <!-- each file should be at most 100MB, keep 30 days worth of history, but at most 3GB -->
+            <maxFileSize>100MB</maxFileSize>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>3GB</totalSizeCap>
+        </rollingPolicy>
+
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %5level [${applicationName}] : %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="com.philo.challenge.ping.PingController" level="INFO" additivity="true">
+        <appender-ref ref="PING_FILE"/>
+    </logger>
+    <root level="INFO">
+        <appender-ref ref="STDOUT"/>
+    </root>
+
+</configuration>
