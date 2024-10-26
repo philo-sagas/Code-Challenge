@@ -22,7 +22,7 @@ import java.util.function.Supplier;
 @RequiredArgsConstructor
 @Component
 public class PingController {
-    private static final long ONE_SECOND_TO_NANOS = 1000000000L;
+    private static final long ONE_SECOND_IN_MILLIS = 1000L;
 
     @NonNull
     private WebClient webClient;
@@ -45,25 +45,25 @@ public class PingController {
         try (RandomAccessFile randomAccessFile = new RandomAccessFile(pingConstants.getFileLockPath(), "rw")) {
             try (FileChannel fileChannel = randomAccessFile.getChannel()) {
                 FileLock fileLock = fileChannel.lock();
-                String lastNanosString = randomAccessFile.readLine();
-                long lastNanos = NumberUtils.toLong(lastNanosString, 0);
+                String lastMillisString = randomAccessFile.readLine();
+                long lastMillis = NumberUtils.toLong(lastMillisString, 0);
                 String counterString = randomAccessFile.readLine();
                 int counter = NumberUtils.toInt(counterString, 0);
-                long elapsedNanos = System.nanoTime() - lastNanos;
-                if (elapsedNanos > ONE_SECOND_TO_NANOS) {
-                    lastNanos = System.nanoTime();
+                long elapsedMillis = System.currentTimeMillis() - lastMillis;
+                if (elapsedMillis > ONE_SECOND_IN_MILLIS) {
+                    lastMillis = System.currentTimeMillis();
                     counter = 1;
                     result = supplier.get();
-                    log.info("Request sent. (interval: {}s, frequency: {})", Math.round(elapsedNanos / (ONE_SECOND_TO_NANOS / 1000.0)) / 1000.0, counter);
+                    log.info("Request sent. (interval: {}s, frequency: {})", elapsedMillis / 1000.0, counter);
                 } else if (counter < pingConstants.getRateLimit()) {
                     ++counter;
                     result = supplier.get();
-                    log.info("Request sent. (interval: {}s, frequency: {})", Math.round(elapsedNanos / (ONE_SECOND_TO_NANOS / 1000.0)) / 1000.0, counter);
+                    log.info("Request sent. (interval: {}s, frequency: {})", elapsedMillis / 1000.0, counter);
                 } else {
-                    log.warn("Request not send because rate limited. (interval: {}s, frequency: {})", Math.round(elapsedNanos / (ONE_SECOND_TO_NANOS / 1000.0)) / 1000.0, counter);
+                    log.warn("Request not send because rate limited. (interval: {}s, frequency: {})", elapsedMillis / 1000.0, counter);
                 }
                 randomAccessFile.seek(0);
-                randomAccessFile.writeBytes(lastNanos + "\n");
+                randomAccessFile.writeBytes(lastMillis + "\n");
                 randomAccessFile.writeBytes(counter + "\n");
                 fileLock.release();
             }

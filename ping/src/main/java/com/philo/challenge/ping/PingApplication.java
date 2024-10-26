@@ -6,6 +6,7 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import reactor.core.Disposable;
 
 @Slf4j
 @SpringBootApplication
@@ -32,7 +33,8 @@ public class PingApplication implements ApplicationRunner {
         log.info("ping.file-lock-path = {}", pingConstants.getFileLockPath());
 
         if (pingConstants.isEnabledSend()) {
-            pingController.preform();
+            Disposable disposable = pingController.preform();
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> disposable.dispose()));
         }
     }
 }
