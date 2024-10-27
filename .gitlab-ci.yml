@@ -1,0 +1,56 @@
+variables:
+  NOTIFICATION_EMAIL: philo.sagas@gmail.com
+
+stages:
+  - build
+  - staging
+
+cache: &global_cache
+  key: "${CI_COMMIT_REF_SLUG}_${CI_COMMIT_SHA}"
+  paths:
+    - pipeline.env
+    - ping/target/*.tar.gz
+    - pong/target/*.tar.gz
+  policy: pull
+
+package by maven:
+  image: maven:3.8.5-openjdk-17
+  stage: build
+#  when: manual
+  allow_failure: false
+  before_script:
+    - echo "BUILD_USER_LOGIN=$GITLAB_USER_LOGIN" >> pipeline.env
+    - echo "BUILD_USER_NAME=$GITLAB_USER_NAME" >> pipeline.env
+    - source pipeline.env
+  script:
+    - mvn clean package
+  cache:
+    <<: *global_cache
+    policy: push
+  artifacts:
+    name: "${CI_PROJECT_NAME}_${CI_COMMIT_SHA}_${CI_JOB_ID}"
+    paths:
+      - ping/target/*.tar.gz
+      - pong/target/*.tar.gz
+    expire_in: 1 day
+  only:
+    - main
+  tags:
+    - docker
+
+create a docker image:
+  image: docker:27-cli
+  stage: staging
+  when: manual
+  allow_failure: true
+  before_script:
+    - set +e
+    - docker rmi `docker images -q philosagas/code-challenge:latest`
+    - set -e
+  script:
+    - docker build -t philosagas/code-challenge:latest .
+  only:
+    - main
+  tags:
+    - docker
+
