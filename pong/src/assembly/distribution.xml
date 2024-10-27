@@ -18,6 +18,7 @@
         <fileSet>
             <directory>src/assembly/scripts</directory>
             <outputDirectory>/</outputDirectory>
+            <fileMode>0755</fileMode>
         </fileSet>
     </fileSets>
     <files>
