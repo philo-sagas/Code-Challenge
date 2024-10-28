@@ -19,7 +19,7 @@ import java.util.concurrent.atomic.AtomicLong;
 @RestController
 @RequestMapping("/pong")
 public class PongController {
-    private static final long ONE_SECOND_TO_NANOS = 1000000000L;
+    private static final long ONE_SECOND_IN_NANOS = 1000000000L;
 
     private final AtomicLong lastNanos = new AtomicLong();
 
@@ -33,17 +33,17 @@ public class PongController {
         return messageMono.doOnNext(msg -> log.info("Received message: {}", msg))
                 .map(msg -> {
                     long elapsedNanos = System.nanoTime() - lastNanos.get();
-                    if (elapsedNanos > ONE_SECOND_TO_NANOS) {
+                    if (elapsedNanos > ONE_SECOND_IN_NANOS) {
                         lastNanos.set(System.nanoTime());
                         counter.set(1);
-                        log.info("Return '200 OK'. (interval: {}s, frequency: {})", Math.round(elapsedNanos / (ONE_SECOND_TO_NANOS / 1000.0)) / 1000.0, counter.get());
+                        log.info("Return '200 OK'. (interval: {}s, frequency: {})", Math.round(elapsedNanos / (ONE_SECOND_IN_NANOS / 1000.0)) / 1000.0, counter.get());
                         return ResponseEntity.status(HttpStatus.OK).body("World");
                     } else if (counter.get() < pongConstants.getThrottling()) {
                         counter.incrementAndGet();
-                        log.info("Return '200 OK'. (interval: {}s, frequency: {})", Math.round(elapsedNanos / (ONE_SECOND_TO_NANOS / 1000.0)) / 1000.0, counter.get());
+                        log.info("Return '200 OK'. (interval: {}s, frequency: {})", Math.round(elapsedNanos / (ONE_SECOND_IN_NANOS / 1000.0)) / 1000.0, counter.get());
                         return ResponseEntity.status(HttpStatus.OK).body("World");
                     } else {
-                        log.warn("Return '429 Too Many Requests'. (interval: {}s, frequency: {})", Math.round(elapsedNanos / (ONE_SECOND_TO_NANOS / 1000.0)) / 1000.0, counter.get());
+                        log.warn("Return '429 Too Many Requests'. (interval: {}s, frequency: {})", Math.round(elapsedNanos / (ONE_SECOND_IN_NANOS / 1000.0)) / 1000.0, counter.get());
                         return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).build();
                     }
                 });
